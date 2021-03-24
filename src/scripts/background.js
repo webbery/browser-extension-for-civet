@@ -1,4 +1,5 @@
 import ext from "./utils/ext";
+// import nanomsg from 'nanomsg';
 
 ext.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {

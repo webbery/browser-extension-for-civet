@@ -1,11 +1,11 @@
-import fs from "fs";
-import gulp from 'gulp';
-import {merge} from 'event-stream'
-import browserify from 'browserify';
-import source from 'vinyl-source-stream';
-import buffer from 'vinyl-buffer';
-import preprocessify from 'preprocessify';
-import gulpif from "gulp-if";
+const gulp = require('gulp') ;
+const {merge} = require('event-stream') ;
+const browserify = require('browserify') ;
+const source = require('vinyl-source-stream') ;
+const buffer = require('vinyl-buffer') ;
+const preprocessify = require('preprocessify') ;
+const gulpif = require('gulp-if') ;
+const fs = require('fs') ;
 
 const $ = require('gulp-load-plugins')();
 
@@ -36,38 +36,15 @@ var manifest = {
   }
 }
 
-// Tasks
-gulp.task('clean', () => {
-  return pipe(`./build/${target}`, $.clean())
-})
-
-gulp.task('build', (cb) => {
-  $.runSequence('clean', 'styles', 'ext', cb)
-});
-
-gulp.task('watch', ['build'], () => {
-  $.livereload.listen();
-
-  gulp.watch(['./src/**/*']).on("change", () => {
-    $.runSequence('build', $.livereload.reload);
-  });
-});
-
-gulp.task('default', ['build']);
-
-gulp.task('ext', ['manifest', 'js'], () => {
-  return mergeAll(target)
-});
-
-
 // -----------------
 // COMMON
 // -----------------
-gulp.task('js', () => {
-  return buildJS(target)
+gulp.task('js', (done) => {
+  buildJS(target)
+  done()
 })
 
-gulp.task('styles', () => {
+gulp.task('styles', gulp.series(() => {
   return gulp.src('src/styles/**/*.scss')
     .pipe($.plumber())
     .pipe($.sass.sync({
@@ -76,9 +53,9 @@ gulp.task('styles', () => {
       includePaths: ['.']
     }).on('error', $.sass.logError))
     .pipe(gulp.dest(`build/${target}/styles`));
-});
+}));
 
-gulp.task("manifest", () => {
+gulp.task("manifest", gulp.series(() => {
   return gulp.src('./manifest.json')
     .pipe(gulpif(!production, $.mergeJson({
       fileName: "manifest.json",
@@ -91,20 +68,40 @@ gulp.task("manifest", () => {
       endObj: manifest.firefox
     })))
     .pipe(gulp.dest(`./build/${target}`))
-});
+}));
 
+gulp.task('ext', gulp.series('manifest', 'js', (done) => {
+  mergeAll(target)
+  done()
+}));
 
+// Tasks
+gulp.task('clean', gulp.series(() => {
+  return pipe(`./build/${target}`, $.clean())
+}))
+
+gulp.task('build', gulp.series('clean', 'styles', 'ext'));
+
+gulp.task('watch', gulp.series('build', () => {
+  $.livereload.listen({port: 35729, start: true});
+
+  gulp.watch(['./src/**/*']).on("change", () => {
+    $.runSequence('build', $.livereload.reload);
+  });
+}));
+
+gulp.task('default', gulp.series('build', (done) => {done()}));
 
 // -----------------
 // DIST
 // -----------------
-gulp.task('dist', (cb) => {
+gulp.task('dist', gulp.series((cb) => {
   $.runSequence('build', 'zip', cb)
-});
+}));
 
-gulp.task('zip', () => {
+gulp.task('zip', gulp.series(() => {
   return pipe(`./build/${target}/**/*`, $.zip(`${target}.zip`), './dist')
-})
+}))
 
 
 // Helpers
@@ -112,7 +109,7 @@ function pipe(src, ...transforms) {
   return transforms.reduce((stream, transform) => {
     const isDest = typeof transform === 'string'
     return stream.pipe(isDest ? gulp.dest(transform) : transform)
-  }, gulp.src(src))
+  }, gulp.src(src, {'allowEmpty': true}))
 }
 
 function mergeAll(dest) {
@@ -130,8 +127,8 @@ function buildJS(target) {
     'background.js',
     'contentscript.js',
     'options.js',
-    'popup.js',
-    'livereload.js'
+    'livereload.js',
+    'popup.js'
   ]
 
   let tasks = files.map( file => {
@@ -139,7 +136,7 @@ function buildJS(target) {
       entries: 'src/scripts/' + file,
       debug: true
     })
-    .transform('babelify', { presets: ['es2015'] })
+    .transform('babelify', { presets: ['@babel/preset-env'] })
     .transform(preprocessify, {
       includeExtensions: ['.js'],
       context: context
@@ -158,5 +155,5 @@ function buildJS(target) {
     .pipe(gulp.dest(`build/${target}/scripts`));
   });
 
-  return merge.apply(null, tasks);
+  return merge(tasks);
 }
