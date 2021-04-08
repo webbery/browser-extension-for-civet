@@ -11,19 +11,15 @@ storage.get('color', function(resp) {
 
 var template = (data) => {
   var json = JSON.stringify(data);
+  console.info('info:', json)
   return (`
-  <div class="site-description">
-    <h3 class="title">${data.title}</h3>
-    <p class="description">${data.description}</p>
-    <a href="${data.url}" target="_blank" class="url">${data.url}</a>
-  </div>
-  <div class="action-container">
-    <button data-bookmark='${json}' id="save-btn" class="btn btn-primary">Save</button>
-  </div>
+  <input type="checkbox" id="memery"/>
   `);
 }
+
 var renderMessage = (message) => {
   var displayContainer = document.getElementById("display-container");
+  // displayContainer.innerHTML = `<p class='message'>${message}</p>`;
   displayContainer.innerHTML = `<p class='message'>${message}</p>`;
 }
 

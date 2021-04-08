@@ -25,9 +25,14 @@ var extractTags = () => {
   return data;
 }
 
+function getAllText(){
+  return document.body.innerText;
+}
+
 function onRequest(request, sender, sendResponse) {
   if (request.action === 'process-page') {
-    sendResponse(extractTags())
+    // sendResponse(extractTags())
+    sendResponse(getAllText())
   }
 }
 

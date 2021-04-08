@@ -1,6 +1,6 @@
 {
-  "name": "extension-boilerplate",
-  "version": "0.0.2",
+  "name": "image-steam",
+  "version": "0.0.1",
   "description": "A template for creating cross-browser extensions",
   "scripts": {
     "chrome-build": "cross-env TARGET=chrome gulp",
@@ -17,13 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/EmailThis/extension-boilerplate"
+    "url": "https://github.com/webbery/image-steam"
   },
-  "author": "Bharani <bharani91@gmail.com> (https://github.com/bharani91)",
+  "author": "webberg <webbery@foxmail.com>",
   "bugs": {
-    "url": "https://github.com/EmailThis/extension-boilerplate/issues"
+    "url": "https://github.com/webbery/image-steam/issues"
   },
-  "homepage": "https://www.emailthis.me/extension-boilerplate",
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
